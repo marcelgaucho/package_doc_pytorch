@@ -17,16 +17,8 @@ from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from torch.utils.data import TensorDataset, DataLoader
 
-
-
 from pathlib import Path
 import random
-
-
-
-
-
-
 import matplotlib.pyplot as plt
 
 # Função que mostra gráfico
@@ -236,13 +228,13 @@ class ModelTrainer:
         if torch.backends.mps.is_available()
         else "cpu"
     )     
-    def __init__(self, x_dir, y_dir, output_dir, model_class):
+    def __init__(self, x_dir, y_dir, output_dir, model):
         # Directories
         self.x_dir = x_dir # Dir with X data
         self.y_dir = y_dir # Dir with Y data
         self.output_dir = output_dir # Dir to save Output data
         
-        self.model_class = model_class # Model class
+        self.model = model # Model 
         
         self.model_path = output_dir + self.best_model_filename # Path to save model
         
@@ -502,8 +494,8 @@ class ModelTrainer:
         # Set datasets
         self._set_dataloaders(batch_size=batch_size, shuffle=shuffle)
         
-        # Build model
-        model = self.model_class().to(self.device)
+        # Get model
+        model = self.model.to(self.device)
         
         # Optimizer and learning rate
         optimizer = optimizer_class(model.parameters(), lr=learning_rate)

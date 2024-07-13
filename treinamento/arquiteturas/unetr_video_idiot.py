@@ -10,38 +10,6 @@ Created on Sat Jun 29 13:06:15 2024
 import torch
 import torch.nn as nn
 
-# %% Hyperparameters
-
-IMG_SIZE = 256 # No caso isso seria equivalente ao tamanho do PATCH em uma CNN
-NUM_CHANNELS = 3
-PATCH_SIZE = 16 # Isso seria equivalente a um subpatch (talvez o tamanho de um filtro em uma CNN?)
-NUM_PATCHES = (IMG_SIZE//PATCH_SIZE) ** 2
-
-HIDDEN_DIM = 128 # Dimensão do Embedding  
-NUM_LAYERS = 12 # Número de Layers (Encoders) no Transformer
-NUM_HEADS = 8 # Número de Cabeças para Atenção MultiCabeça
-MLP_DIM = 256 # Dimensão da rede MLP no final da arquitetura
-DROPOUT = 0.1 # Taxa de Dropout no MLP do Transformer
-# MAX_FILTERS = 512 # Maximum number of filter in the Decoder
-
-# Como são 4 deconvoluções, e partimos do valor do patch size, então
-# vejo que em cada deconvolução, o patch duplica de tamanho.
-# Com isso, ao final o tamanho da deconvolução precisa bater com
-# o da imagem. O tamanho da deconvolução é patch_size*2*2*2*2,
-# ou patch_size*2^4 ou patch_size*16
-
-# %% Hyperparameters Dictionary
-
-config_dict = {'IMG_SIZE': IMG_SIZE,
-               'NUM_CHANNELS': NUM_CHANNELS,
-               'PATCH_SIZE': PATCH_SIZE,
-               'NUM_PATCHES': NUM_PATCHES,
-               'HIDDEN_DIM': HIDDEN_DIM,
-               'NUM_LAYERS': NUM_LAYERS,
-               'NUM_HEADS': NUM_HEADS, 
-               'MLP_DIM': MLP_DIM,
-               'DROPOUT': DROPOUT} # ,MAX_FILTERS': MAX_FILTERS
-
 # %% Patcher Class
 
 class Patcher(nn.Module):
@@ -88,7 +56,14 @@ class DeconvBlock(nn.Module):
 
 # %% UNETR Class
 
-class UNETR_2D(nn.Module):
+class UNETR(nn.Module):
+    device = (
+        "cuda"
+        if torch.cuda.is_available()
+        else "mps"
+        if torch.backends.mps.is_available()
+        else "cpu"
+        )
     def __init__(self, cf):
         super().__init__()
         self.cf = cf
@@ -103,7 +78,7 @@ class UNETR_2D(nn.Module):
         )
         
         self.positions = torch.arange(start=0, end=cf["NUM_PATCHES"], step=1, 
-                                      dtype=torch.int32)
+                                      dtype=torch.int32).to(self.device)
         self.pos_embed = nn.Embedding(cf["NUM_PATCHES"], cf["HIDDEN_DIM"])
         
         """ Transformer Encoder """
@@ -117,7 +92,7 @@ class UNETR_2D(nn.Module):
                 dropout=cf["DROPOUT"],
                 activation=nn.GELU(),
                 batch_first=True                
-            )
+            ).to(self.device)
             self.trans_encoder_layers.append(layer)
             
         """ CNN Decoder """
@@ -182,7 +157,7 @@ class UNETR_2D(nn.Module):
         """ Patch + Position Embeddings """
         patch_embed = self.patch_embed(patches) # [8, 256, 768]
         
-        positions = self.positions
+        positions = self.positions 
         pos_embed = self.pos_embed(positions)
         
         x = patch_embed + pos_embed
@@ -241,12 +216,13 @@ class UNETR_2D(nn.Module):
         return output
 
 # %%
-
+'''
 x = torch.rand(10, 3, 256, 256)
 y = (torch.rand(10, 1, 256, 256) > 0.95).type(torch.uint8) # 5% of 1's
 
-teste_unetr = UNETR_2D(config_dict)
+teste_unetr = UNETR(config_dict)
 saida_teste_unetr = teste_unetr(x)
+'''
 
 
 

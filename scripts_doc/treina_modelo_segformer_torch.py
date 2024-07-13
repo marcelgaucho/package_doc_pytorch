@@ -21,7 +21,7 @@ print(f'Total GPU memory available is {total_memory}. Limit to a fraction of {fr
 # %% Data for Script
 
 batch_size = 16
-model_type = 'resunet'
+model_type = 'segformer'
 early_stopping_epochs = 25
 
 # %% Diretórios de entrada e saída
@@ -37,12 +37,12 @@ if not Path(output_dir).exists():
 # %%  Importa para treinamento
 
 from package_doc_pytorch.treinamento.functions_train import ModelTrainer
-from package_doc_pytorch.treinamento.arquiteturas.resunet import ResUnet
+from package_doc_pytorch.treinamento.arquiteturas.segformer_simple import Segformer
 
 # %% Build model
 
 device = ("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
-model = ResUnet().to(device)
+model = Segformer(num_classes=2).to(device)
 
 # %% Create object for Train and Train
 
