@@ -37,7 +37,7 @@ if not Path(output_dir).exists():
 # %%  Importa para treinamento
 
 from package_doc_pytorch.treinamento.functions_train import ModelTrainer
-from package_doc_pytorch.treinamento.arquiteturas.unetr_video_idiot import UNETR
+from package_doc_pytorch.treinamento.arquiteturas.unetr_modified import UNETR
 
 
 # %% Hyperparameters
